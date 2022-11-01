@@ -12,11 +12,6 @@ const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
 const cube = new THREE.Mesh( geometry, material );
 scene.add( cube );
 
-const geometry2 = new THREE.SphereGeometry( 15, 32, 16 );
-const material2 = new THREE.MeshBasicMaterial( { color: 0xffff00 } );
-const sphere = new THREE.Mesh( geometry2, material2 );
-scene.add( sphere );
-
 camera.position.z = 5;
 
 function animate() {

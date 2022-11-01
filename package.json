@@ -1,5 +1,28 @@
 {
+  "name": "comp5411-rendering",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Shimmer93/COMP5411-Rendering.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Shimmer93/COMP5411-Rendering/issues"
+  },
+  "homepage": "https://github.com/Shimmer93/COMP5411-Rendering#readme",
   "dependencies": {
     "three": "^0.146.0"
+  },
+  "devDependencies": {
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
   }
 }
