@@ -4,6 +4,7 @@
   "description": "COMP5411 Rendering Project",
   "scripts": {
     "start": "node app.js",
+    "debug": "set DEBUG=express:* & node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
