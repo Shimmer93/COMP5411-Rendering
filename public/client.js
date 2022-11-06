@@ -4,28 +4,46 @@ import Stats from './jsm/libs/stats.module.js'
 import { GUI } from './jsm/libs/lil-gui.module.min.js'
 
 import { buildWall } from './room.js'
-import { slime } from './slime.js'
+import { buildSlime} from './slime.js'
 
+// Scene
 const scene = new THREE.Scene()
 
+// Camera
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100)
 camera.position.set(0, 5, 5)
 
+// Renderer
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.shadowMap.enabled = true
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 document.body.appendChild(renderer.domElement)
 
-const ambientLight = new THREE.AmbientLight(0xcccccc)
-scene.add(ambientLight)
-const pointLight = new THREE.PointLight(0xffffff)
-pointLight.position.set(2, 5, 2)
-pointLight.castShadow = true
-scene.add(pointLight)
-
+// Controls
 const controls = new OrbitControls(camera, renderer.domElement)
 
+//GUI
+const gui = new GUI()
+
+// Lights
+const ambientLight = new THREE.AmbientLight(0x111111)
+scene.add(ambientLight)
+function addPointLight(intensity, pos){
+    const pointLight = new THREE.PointLight(0xffffff, intensity, 100)
+    pointLight.position.set(pos[0], pos[1], pos[2])
+    pointLight.castShadow = false
+    scene.add(pointLight)
+}
+
+addPointLight(1, [3, 5, 3])
+
+const rectLight = new THREE.RectAreaLight(0xffffff, 0.5, 2, 2)
+rectLight.position.set(0, 7, 0)
+rectLight.lookAt(0, 0, 0)
+scene.add(rectLight)
+
+// Textures
 const floorImg = '../assets/floor.jpg'
 const wallImg = '../assets/wall.jpg'
 
@@ -40,8 +58,16 @@ buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, Math.PI/2, 0], [-5, 3.75, 0])
 buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, -Math.PI/2, 0], [5, 3.75, 0])
 
 // Slime
-scene.add(slime)
+const type = 'metal'
+const cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 128, {
+    format: THREE.RGBFormat,
+    generateMipmaps: true,
+    minFilter: THREE.LinearMipmapLinearFilter
+})
+const cubeCamera = new THREE.CubeCamera( 0.1, 1000, cubeRenderTarget )
+buildSlime(scene, gui, type, cubeRenderTarget, cubeCamera)
 
+// Event Listeners
 window.addEventListener(
     'resize',
     () => {
@@ -53,22 +79,17 @@ window.addEventListener(
     false
 )
 
+// Stats
 const stats = Stats()
 document.body.appendChild(stats.dom)
 
-const gui = new GUI()
+// GUI
 const cameraFolder = gui.addFolder('Camera')
 cameraFolder.add(camera.position, 'z', 0, 10)
 cameraFolder.open()
-const lightFolder = gui.addFolder('Light')
-lightFolder.add(pointLight.position, 'x', -4.99, 4.99)
-lightFolder.add(pointLight.position, 'y', 0, 7.49)
-lightFolder.add(pointLight.position, 'z', -4.99, 4.99)
-lightFolder.add(pointLight.color, 'r', 0, 1)
-lightFolder.add(pointLight.color, 'g', 0, 1)
-lightFolder.add(pointLight.color, 'b', 0, 1)
-lightFolder.open()
 
+
+// Animation
 function animate() {
     requestAnimationFrame(animate)
     controls.update()
@@ -77,6 +98,9 @@ function animate() {
 }
 
 function render() {
+    if (type === 'metal'){
+        cubeCamera.update(renderer, scene)
+    }
     renderer.render(scene, camera)
 }
 

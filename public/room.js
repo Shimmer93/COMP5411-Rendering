@@ -9,7 +9,7 @@ function buildWall(scene, width, height, img, repeat, rot, pos){
     const wallMat = new THREE.MeshPhongMaterial({
         map: wallText,
         side: THREE.DoubleSide,
-        shininess: 5
+        shininess: 0,
     })
     const wall = new THREE.Mesh(wallGeo, wallMat)
     wall.rotation.set(rot[0], rot[1], rot[2])
