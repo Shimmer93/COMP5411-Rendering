@@ -3,18 +3,20 @@ import { GLTFLoader } from './jsm/loaders/GLTFLoader.js'
 
 const SLIME_TYPES = ['normal', 'wood', 'metal', 'bubble', 'glass']
 
-function buildSlime(scene, gui, type, cubeRenderTarget, cubeCamera){
+function buildSlime(scene, gui, type, cubeRenderTarget, cubeCamera, mixer){
     const loader = new GLTFLoader()
     loader.load(
-        '../assets/slime.glb',
+        '../assets/animated_slime.glb',
         (gltf) => {
             const slime = gltf.scene
-            // const slimeMat = new THREE.MeshStandardMaterial({
-            //     // color: 0xeeeeee,
-            //     // shininess: 10,
-            //     metalness: 0.5,
-            //     roughness: 0.8
-            // })
+            console.log(gltf)
+            
+            mixer = new THREE.AnimationMixer(slime)
+            gltf.animations.forEach((clip) => {
+                console.log(clip)
+                mixer.clipAction(clip).play()
+            })
+            
             let slimeMat
             switch (type) {
                 case 'normal':
