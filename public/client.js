@@ -5,7 +5,7 @@ import { GUI } from './jsm/libs/lil-gui.module.min.js'
 import { GLTFLoader } from './jsm/loaders/GLTFLoader.js'
 
 import { buildWall } from './room.js'
-import { buildSlime} from './slime.js'
+import { slimeEat} from './slime.js'
 
 // Scene
 const scene = new THREE.Scene()
@@ -52,14 +52,14 @@ const floorImg = '../assets/floor.jpg'
 const wallImg = '../assets/wall.jpg'
 
 // Floor
-buildWall(scene, 10, 10, floorImg, [4, 4], [Math.PI/2, 0, 0], [0, 0, 0])
+buildWall(scene, 10, 10, floorImg, [3, 3], [Math.PI/2, 0, 0], [0, 0, 0], 'floor')
 // Ceiling
-buildWall(scene, 10, 10, wallImg, [3, 4], [-Math.PI/2, 0, 0], [0, 7.5, 0])
+buildWall(scene, 10, 10, wallImg, [3, 4], [-Math.PI/2, 0, 0], [0, 7.5, 0], 'ceiling')
 // Walls
-buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, 0, 0], [0, 3.75, -5])
-buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, Math.PI, 0], [0, 3.75, 5])
-buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, Math.PI/2, 0], [-5, 3.75, 0])
-buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, -Math.PI/2, 0], [5, 3.75, 0])
+buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, 0, 0], [0, 3.75, -5], 'wall1')
+buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, Math.PI, 0], [0, 3.75, 5], 'wall2')
+buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, Math.PI/2, 0], [-5, 3.75, 0], 'wall3')
+buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, -Math.PI/2, 0], [5, 3.75, 0], 'wall4')
 
 // Slime
 const type = 'normal'
@@ -145,6 +145,8 @@ loader.load(
                 child.material = slimeMat
                 child.castShadow = true
                 child.receiveShadow = true
+                child.name = 'slime'
+                child.geometry.translate(0, 0, -0.55)
                 if (type == 'metal'){
                     child.add(cubeCamera)
                 }
@@ -154,9 +156,9 @@ loader.load(
         // eyes
         const eyeGeo = new THREE.PlaneGeometry(0.1, 0.2)
         eye1 = new THREE.Mesh(eyeGeo, eyeMat)
-        eye1.position.set(0.3, 0.05, 0.85)
+        eye1.position.set(0.3, 0.6, 0.85)
         eye2 = new THREE.Mesh(eyeGeo, eyeMat)
-        eye2.position.set(-0.3, 0.05, 0.85)
+        eye2.position.set(-0.3, 0.6, 0.85)
         const eyes = new THREE.Group()
         eyes.add(eye1)
         eyes.add(eye2)
@@ -169,7 +171,7 @@ loader.load(
             (gltf) => {
                 heart = gltf.scene
                 heart.scale.set(0.2, 0.2, 0.2)
-                heart.position.set(0.8, 0.6, 0)
+                heart.position.set(0.8, 1.2, 0)
                 heart.visible = false
 
                 heart.traverse((child) => {
@@ -180,13 +182,14 @@ loader.load(
                         })
                         child.castShadow = true
                         child.receiveShadow = true
+                        child.name = 'heart'
                     }
                 })
                 slime.add(heart)
             }
         )
         
-        slime.position.set(0, 0.6, 0)
+        slime.position.set(0, 0, 0)
         scene.add(slime)
         
         const slimeFolder = gui.addFolder('Slime')
@@ -208,7 +211,7 @@ loader2.load(
     '../assets/apple.glb',
     (gltf) => {
         apple = gltf.scene
-        apple.position.set(2, 0.6, 2)
+        apple.position.set(2, 0.35, 2)
         apple.scale.set(0.01, 0.01, 0.01)
         console.log(apple)
 
@@ -222,9 +225,10 @@ loader2.load(
                     shininess: 30
                 })
                 child.material = appleMat
+                child.name = 'apple'
             }
         })
-
+        apple.visible = false
         scene.add(apple)
 
         const appleFolder = gui.addFolder('Apple')
@@ -260,6 +264,19 @@ const happyEyeMat = new THREE.MeshPhongMaterial({
     transparent: true
 })
 
+function becomeHappy() {
+    eye1.material = happyEyeMat
+    eye2.material = happyEyeMat
+    heart.visible = true
+}
+
+function resetHappy() {
+    eye1.material = eyeMat
+    eye2.material = eyeMat
+    heart.visible = false
+}
+
+let petting = false
 window.addEventListener(
     'mousedown',
     (event) => {
@@ -270,11 +287,28 @@ window.addEventListener(
         if (intersects.length > 0){
             let obj = intersects[0].object
             console.log(obj.name)
-            if (obj.name == 'Object_4') {
+            if (obj.name == 'slime') {
+                petting = true
                 controls.enabled = false
-                eye1.material = happyEyeMat
-                eye2.material = happyEyeMat
-                heart.visible = true
+                becomeHappy()
+            }
+            else if (obj.name == 'floor' && apple.visible == false) {
+                const targetPoint = intersects[0].point
+                apple.position.set(targetPoint.x, 0.35, targetPoint.z)
+                slimeEat(slime, targetPoint, 
+                    () => {
+                        becomeHappy()
+                        apple.visible = true
+                    }, 
+                    () => {
+                        resetHappy()
+                        apple.visible = false
+                        if (slime.scale.x < 1.6) {
+                            slime.scale.addScalar(0.1)
+                            heart.translateY(0.05)
+                        }
+                    }
+                )
             }
             
         }
@@ -284,10 +318,10 @@ window.addEventListener(
 window.addEventListener(
     'mouseup',
     () => {
-        controls.enabled = true
-        eye1.material = eyeMat
-        eye2.material = eyeMat
-        heart.visible = false
+        if (petting) {
+            controls.enabled = true
+            resetHappy()
+        }
     }
 )
 

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { GLTFLoader } from './jsm/loaders/GLTFLoader.js'
+import gsap from 'gsap'
 
 const SLIME_TYPES = ['normal', 'wood', 'metal', 'bubble', 'glass']
 
@@ -74,7 +75,7 @@ function buildSlime(scene, gui, type, cubeRenderTarget, cubeCamera, mixer){
                 }
             })
             
-            slime.position.set(0, 0.6, 0)
+            slime.position.set(0, 0.55, 0)
             scene.add(slime)
             
             const slimeFolder = gui.addFolder('Slime')
@@ -91,5 +92,27 @@ function buildSlime(scene, gui, type, cubeRenderTarget, cubeCamera, mixer){
         }
     )
 }
+
+function slimeEat(slime, targetPos, onStartFunc, onCompleteFunc) {
+    const tl = gsap.timeline()
+
+    const dx = slime.position.x - targetPos.x
+    const dz = slime.position.z - targetPos.z
+    const d = Math.sqrt(Math.pow(dx, 2) + Math.pow(dz, 2))
+    let newRot = Math.atan2(dx, dz) + Math.PI
+    if (newRot > Math.PI) newRot -= 2 * Math.PI
+
+    tl.to(slime.rotation, {
+        y: newRot,
+        duration: 1,
+        onStart: onStartFunc
+    })
+    tl.to(slime.position, { 
+        x: targetPos.x, 
+        z: targetPos.z, 
+        duration: d, 
+        onComplete: onCompleteFunc
+    })
+}
     
-export { SLIME_TYPES, buildSlime }
+export { SLIME_TYPES, buildSlime, slimeEat}

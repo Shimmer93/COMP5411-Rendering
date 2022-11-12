@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 
-function buildWall(scene, width, height, img, repeat, rot, pos){
+function buildWall(scene, width, height, img, repeat, rot, pos, name){
     const wallGeo = new THREE.PlaneGeometry(width, height)
     const wallText = new THREE.TextureLoader().load(img)
     wallText.wrapS = THREE.RepeatWrapping
@@ -16,6 +16,7 @@ function buildWall(scene, width, height, img, repeat, rot, pos){
     wall.position.set(pos[0], pos[1], pos[2])
 
     wall.receiveShadow = true
+    wall.name = name
     scene.add(wall)
 }
 
