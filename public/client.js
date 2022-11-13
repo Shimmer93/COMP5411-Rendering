@@ -62,7 +62,7 @@ buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, Math.PI/2, 0], [-5, 3.75, 0], 'wa
 buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, -Math.PI/2, 0], [5, 3.75, 0], 'wall4')
 
 // Slime
-const type = 'normal'
+const type = 'metal'
 const cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 128, {
     format: THREE.RGBFormat,
     generateMipmaps: true,
@@ -148,6 +148,7 @@ loader.load(
                 child.name = 'slime'
                 child.geometry.translate(0, 0, -0.55)
                 if (type == 'metal'){
+                    console.log(slimeMat)
                     child.add(cubeCamera)
                 }
             }
@@ -211,7 +212,7 @@ loader2.load(
     '../assets/apple.glb',
     (gltf) => {
         apple = gltf.scene
-        apple.position.set(2, 0.35, 2)
+        apple.position.set(6, 6, 6)
         apple.scale.set(0.01, 0.01, 0.01)
         console.log(apple)
 
@@ -302,6 +303,7 @@ window.addEventListener(
                     }, 
                     () => {
                         resetHappy()
+                        apple.position.set(6, 6, 6)
                         apple.visible = false
                         if (slime.scale.x < 1.6) {
                             slime.scale.addScalar(0.1)
@@ -310,7 +312,6 @@ window.addEventListener(
                     }
                 )
             }
-            
         }
     }
 )
@@ -344,8 +345,11 @@ function animate() {
 }
 
 function render() {
-    if (type === 'metal'){
+    
+    if (type == 'metal' && slime){
+        slime.visible = false
         cubeCamera.update(renderer, scene)
+        slime.visible = true
     }
 
     const delta = clock.getDelta()
