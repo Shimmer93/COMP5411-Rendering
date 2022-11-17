@@ -7,6 +7,18 @@ import { GLTFLoader } from './jsm/loaders/GLTFLoader.js'
 import { buildWall } from './room.js'
 import { slimeEat} from './slime.js'
 
+//Data
+let friendship = 0
+let money = 10
+let friendship_text = document.getElementById('fs')
+let money_text = document.getElementById('mn')
+
+let feeding = false
+let feed_button = document.getElementById('feed')
+
+let slimeType = 'normal'
+let type_select = document.getElementById('mat')
+
 // Scene
 const scene = new THREE.Scene()
 
@@ -21,7 +33,7 @@ camera.position.set(0, 4, 4)
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 renderer.shadowMap.enabled = true
-renderer.shadowMap.type = THREE.PCFSoftShadowMap
+renderer.shadowMap.type = THREE.PCfriendshipoftShadowMap
 document.body.appendChild(renderer.domElement)
 
 // Controls
@@ -62,7 +74,6 @@ buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, Math.PI/2, 0], [-5, 3.75, 0], 'wa
 buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, -Math.PI/2, 0], [5, 3.75, 0], 'wall4')
 
 // Slime
-const type = 'metal'
 const cubeRenderTarget = new THREE.WebGLCubeRenderTarget( 128, {
     format: THREE.RGBFormat,
     generateMipmaps: true,
@@ -95,7 +106,7 @@ loader.load(
         })
         
         let slimeMat
-        switch (type) {
+        switch (slimeType) {
             case 'normal':
                 slimeMat = new THREE.MeshPhongMaterial({
                     color: 0x00cccc,
@@ -147,7 +158,7 @@ loader.load(
                 child.receiveShadow = true
                 child.name = 'slime'
                 child.geometry.translate(0, 0, -0.55)
-                if (type == 'metal'){
+                if (slimeType == 'metal'){
                     console.log(slimeMat)
                     child.add(cubeCamera)
                 }
@@ -206,6 +217,66 @@ loader.load(
         console.error(error)
     }
 )
+
+function changeSlimeType(type) {
+    if (type != slimeType) {
+        slimeType = type
+        let slimeMat
+        switch (type) {
+            case 'normal':
+                slimeMat = new THREE.MeshPhongMaterial({
+                    color: 0x00cccc,
+                    shininess: 30
+                })
+                break;
+            case 'wood':
+                const woodText = new THREE.TextureLoader().load('../assets/wood.jpg')
+                slimeMat = new THREE.MeshPhongMaterial({
+                    map: woodText,
+                    shininess: 30
+                })
+                break;
+            case 'metal':
+                slimeMat = new THREE.MeshPhongMaterial({
+                    color: 0xffffff,
+                    specular: 0xffffff,
+                    shininess: 100,
+                    envMap: cubeRenderTarget.texture
+                })
+                break;
+            case 'bubble':
+                slimeMat = new THREE.MeshPhongMaterial({
+                    color: 0xeeeeee,
+                    shininess: 30,
+                    transparent: true,
+                    opacity: 0.3,
+                    side: THREE.DoubleSide
+                })
+                break;
+            case 'glass':
+                slimeMat = new THREE.MeshPhysicalMaterial({
+                    roughness: 0,
+                    transmission: 1,
+                    thickness: 2
+                })
+                break;
+            default:
+                slimeMat = new THREE.MeshPhongMaterial({
+                    color: 0x00cccc,
+                    shininess: 30
+                })
+        }
+            
+        slime.traverse((child) => {
+            if (child.name == 'slime'){
+                child.material = slimeMat
+                if (type == 'metal'){
+                    child.add(cubeCamera)
+                }
+            }
+        })
+    }
+}
 
 const loader2 = new GLTFLoader()
 loader2.load(
@@ -292,25 +363,33 @@ window.addEventListener(
                 petting = true
                 controls.enabled = false
                 becomeHappy()
+                friendship += 1
             }
-            else if (obj.name == 'floor' && apple.visible == false) {
-                const targetPoint = intersects[0].point
-                apple.position.set(targetPoint.x, 0.35, targetPoint.z)
-                slimeEat(slime, targetPoint, 
-                    () => {
-                        becomeHappy()
-                        apple.visible = true
-                    }, 
-                    () => {
-                        resetHappy()
-                        apple.position.set(6, 6, 6)
-                        apple.visible = false
-                        if (slime.scale.x < 1.6) {
-                            slime.scale.addScalar(0.1)
-                            heart.translateY(0.05)
+            else if (obj.name == 'floor' && apple.visible == false && feeding) {
+                if (money >= 10){
+                    const targetPoint = intersects[0].point
+                    apple.position.set(targetPoint.x, 0.35, targetPoint.z)
+                    slimeEat(slime, targetPoint, 
+                        () => {
+                            becomeHappy()
+                            apple.visible = true
+                            friendship += 5
+                            money -= 10
+                        }, 
+                        () => {
+                            resetHappy()
+                            apple.position.set(6, 6, 6)
+                            apple.visible = false
+                            if (slime.scale.x < 1.6) {
+                                slime.scale.addScalar(0.1)
+                                heart.translateY(0.05)
+                            }
                         }
-                    }
-                )
+                    )
+                } else {
+                    controls.enabled = false
+                    alert('You do not have enough money!')
+                }
             }
         }
     }
@@ -325,6 +404,18 @@ window.addEventListener(
         }
     }
 )
+
+feed_button.addEventListener('click', () => {
+    if (feeding) {
+        feeding = false
+        feed_button.textContent = 'Feed'
+        controls.enabled = true
+    } 
+    else {
+        feeding = true
+        feed_button.textContent = 'Stop'
+    }
+})
 
 // Stats
 const stats = Stats()
@@ -345,8 +436,12 @@ function animate() {
 }
 
 function render() {
+
+    friendship_text.textContent = `Friendship: ${friendship}`
+    money_text.textContent = `Money: ${money}`
+    changeSlimeType(type_select.value)
     
-    if (type == 'metal' && slime){
+    if (slimeType == 'metal' && slime){
         slime.visible = false
         cubeCamera.update(renderer, scene)
         slime.visible = true
