@@ -78,6 +78,16 @@ class Slime {
         })
         this.cubeCamera = new THREE.CubeCamera( 0.1, 1000, this.cubeRenderTarget )
 
+        // Meow
+        this.meowListener = new THREE.AudioListener()
+        this.meowSound = new THREE.Audio(this.meowListener)
+        const audioLoader = new THREE.AudioLoader()
+        audioLoader.load('../assets/meow.mp3', (buffer) => {
+            this.meowSound.setBuffer(buffer)
+            this.meowSound.setLoop(false)
+            this.meowSound.setVolume(0.5)
+        })
+
         this.type = 'normal'
         this.petting = false
         this.feeding = false
@@ -100,7 +110,7 @@ class Slime {
     
                 // Animations
                 this.mixer = new THREE.AnimationMixer(this.slime)
-                this.mixer.clipAction(gltf.animations[1]).play()
+                // this.mixer.clipAction(gltf.animations[1]).play()
                 this.becomeCatAction = this.mixer.clipAction(gltf.animations[0])
                 this.becomeCatAction.clampWhenFinished = true
                 this.becomeCatAction.setLoop(THREE.LoopOnce)
@@ -247,6 +257,9 @@ class Slime {
         this.eye1.material = happyEyeMat
         this.eye2.material = happyEyeMat
         this.heart.visible = true
+        if (this.isCat) {
+            this.meowSound.play()
+        }
     }
 
     resetHappy() {

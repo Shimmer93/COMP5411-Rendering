@@ -44,6 +44,11 @@ const listener = new THREE.AudioListener()
 camera.add(listener)
 const bgm = new THREE.Audio(listener)
 const audioLoader = new THREE.AudioLoader()
+audioLoader.load('../assets/bgm.mp3', function (buffer) {
+    bgm.setBuffer(buffer)
+    bgm.setLoop(true)
+    bgm.setVolume(0.2)
+})
 
 // Lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
@@ -69,6 +74,7 @@ buildWall(scene, 10, 7.5, wallImg, [4, 4], [0, -Math.PI/2, 0], [5, 3.75, 0], 'wa
 
 // Slime
 let slime = new Slime(scene)
+camera.add(slime.meowListener)
 
 // Food
 let apple = new Food(scene, 'apple')
@@ -84,12 +90,7 @@ window.addEventListener(
     'mousedown',
     (event) => {
         if (musicPlaying == false) {
-            audioLoader.load('../assets/bgm.mp3', function (buffer) {
-                bgm.setBuffer(buffer)
-                bgm.setLoop(true)
-                bgm.setVolume(0.2)
-                bgm.play()
-            })
+            bgm.play()
             musicPlaying = true
         }
 
@@ -190,7 +191,7 @@ function animate() {
 
 function render() {
     const delta = clock.getDelta()
-    if (money <= 1000) {
+    if (money < 1000) {
         money += delta * 3
     }
 
