@@ -3,6 +3,7 @@ import { GLTFLoader } from './jsm/loaders/GLTFLoader.js'
 
 const appleModel = '../assets/apple.glb'
 const cakeModel = '../assets/cake.glb'
+const chickenModel = '../assets/chicken.glb'
 
 class Food {
     constructor(scene, type) {
@@ -11,17 +12,24 @@ class Food {
         switch(type){
             case 'apple':
                 this.model = appleModel
-                this.scale = 0.01
-                this.y = 0.35
+                this.scale = 0.008
+                this.y = 0.28
                 this.friendship = 5
                 this.price = 10
                 break
             case 'cake':
                 this.model = cakeModel
-                this.scale = 0.01
-                this.y = 0.35
+                this.scale = 1
+                this.y = 0
                 this.friendship = 20
                 this.price = 50
+                break
+            case 'chicken':
+                this.model = chickenModel
+                this.scale = 0.03
+                this.y = 0.4
+                this.friendship = 50
+                this.price = 200
                 break
             default:
                 this.model = appleModel

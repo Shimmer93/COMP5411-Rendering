@@ -1,8 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from './jsm/controls/OrbitControls.js'
 import Stats from './jsm/libs/stats.module.js'
-import { GUI } from './jsm/libs/lil-gui.module.min.js'
-import { GLTFLoader } from './jsm/loaders/GLTFLoader.js'
 
 import { buildWall } from './room.js'
 import { Slime } from './slime.js'
@@ -17,7 +15,8 @@ const friendship_text = document.getElementById('fs')
 const money_text = document.getElementById('mn')
 const feed_button = document.getElementById('feed')
 const type_select = document.getElementById('mat')
-const food_select = document.getElementById('mat')
+const food_select = document.getElementById('food')
+const info_text = document.getElementById('info')
 
 // Scene
 const scene = new THREE.Scene()
@@ -39,8 +38,12 @@ document.body.appendChild(renderer.domElement)
 // Controls
 const controls = new OrbitControls(camera, renderer.domElement)
 
-// GUI
-const gui = new GUI()
+// BGM
+let musicPlaying = false
+const listener = new THREE.AudioListener()
+camera.add(listener)
+const bgm = new THREE.Audio(listener)
+const audioLoader = new THREE.AudioLoader()
 
 // Lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
@@ -70,6 +73,7 @@ let slime = new Slime(scene)
 // Food
 let apple = new Food(scene, 'apple')
 let cake = new Food(scene, 'cake')
+let chicken = new Food(scene, 'chicken')
 let food = apple
 
 // Event listeners
@@ -79,6 +83,16 @@ const mouse = new THREE.Vector2()
 window.addEventListener(
     'mousedown',
     (event) => {
+        if (musicPlaying == false) {
+            audioLoader.load('../assets/bgm.mp3', function (buffer) {
+                bgm.setBuffer(buffer)
+                bgm.setLoop(true)
+                bgm.setVolume(0.2)
+                bgm.play()
+            })
+            musicPlaying = true
+        }
+
         mouse.x = (event.clientX / window.innerWidth) * 2 - 1
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
         raycaster.setFromCamera(mouse, camera)
@@ -90,17 +104,22 @@ window.addEventListener(
                 slime.petting = true
                 slime.becomeHappy()
                 controls.enabled = false
-                friendship += 1
+                if (friendship <= 1000) {
+                    friendship += 1
+                }
             }
             else if (obj.name == 'floor' && food.food.visible == false && slime.feeding) {
-                if (money >= 10){
+                if (money >= food.price){
                     const targetPoint = intersects[0].point
+                    console.log(`food type: ${food.type}`)
                     food.setPosition(targetPoint.x, targetPoint.z)
                     slime.eat(targetPoint, 
                         () => {
                             slime.becomeHappy()
                             food.show()
-                            friendship += food.friendship
+                            if (friendship <= 1000) {
+                                friendship += food.friendship
+                            }
                             money -= food.price
                         }, 
                         () => {
@@ -122,6 +141,7 @@ window.addEventListener(
         if (slime.petting) {
             controls.enabled = true
             slime.resetHappy()
+            slime.petting = false
         }
     }
 )
@@ -143,10 +163,16 @@ type_select.addEventListener('change', () => {
 })
 
 food_select.addEventListener('change', () => {
-    if (food_select.value == 'apple') {
-        food = apple
-    } else {
-        food = cake
+    switch (food_select.value) {
+        case 'apple':
+            food = apple
+            break
+        case 'cake':
+            food = cake
+            break
+        case 'chicken':
+            food = chicken
+            break
     }
 })
 
@@ -163,9 +189,13 @@ function animate() {
 }
 
 function render() {
+    const delta = clock.getDelta()
+    if (money <= 1000) {
+        money += delta * 3
+    }
 
     friendship_text.textContent = `Friendship: ${friendship}`
-    money_text.textContent = `Money: ${money}`
+    money_text.textContent = `Money: ${parseInt(money)}`
     
     if (slime && slime.type == 'metal'){
         slime.slime.visible = false
@@ -173,7 +203,12 @@ function render() {
         slime.slime.visible = true
     }
 
-    const delta = clock.getDelta()
+    if (slime && slime.isCat == false && friendship >= 100) {
+        console.log('Cat!')
+        slime.becomeCat()
+        info_text.style.display = 'block'
+    }
+
     if (slime.mixer) slime.mixer.update(delta)
 
     renderer.render(scene, camera)
