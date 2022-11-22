@@ -110,7 +110,7 @@ class Slime {
     
                 // Animations
                 this.mixer = new THREE.AnimationMixer(this.slime)
-                // this.mixer.clipAction(gltf.animations[1]).play()
+                this.mixer.clipAction(gltf.animations[1]).play()
                 this.becomeCatAction = this.mixer.clipAction(gltf.animations[0])
                 this.becomeCatAction.clampWhenFinished = true
                 this.becomeCatAction.setLoop(THREE.LoopOnce)

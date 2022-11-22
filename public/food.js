@@ -21,15 +21,15 @@ class Food {
                 this.model = cakeModel
                 this.scale = 1
                 this.y = 0
-                this.friendship = 20
+                this.friendship = 30
                 this.price = 50
                 break
             case 'chicken':
                 this.model = chickenModel
                 this.scale = 0.03
                 this.y = 0.4
-                this.friendship = 50
-                this.price = 200
+                this.friendship = 70
+                this.price = 100
                 break
             default:
                 this.model = appleModel

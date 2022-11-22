@@ -192,7 +192,7 @@ function animate() {
 function render() {
     const delta = clock.getDelta()
     if (money < 1000) {
-        money += delta * 3
+        money += delta * 5
     }
 
     friendship_text.textContent = `Friendship: ${friendship}`
